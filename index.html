@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AeroFlight: The Aerodynamic Theory of Helicopters</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+    .rotor-blur {
+      background: radial-gradient(ellipse at center, rgba(6, 182, 212, 0.4) 0%, rgba(59, 130, 246, 0.15) 60%, transparent 75%);
+    }
+    input[type=range] {
+      accent-color: #06b6d4;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased selection:bg-cyan-500 selection:text-slate-950">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v4m0 0H4m8 0h8M3 13h18M5 17h14m-7-4v8m-4 0h8" />
+          </svg>
+        </div>
+        <div>
+          <span class="font-bold tracking-tight text-white flex items-center gap-1.5">
+            Rotary<span class="text-cyan-400">Aero</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">FLIGHT LAB</span>
+          </span>
+        </div>
+      </div>
+      <nav class="hidden md:flex items-center space-x-7 text-sm font-medium text-slate-300">
+        <a href="#theory-rotary" class="hover:text-cyan-400 transition-colors">1. The Rotary Wing</a>
+        <a href="#theory-controls" class="hover:text-cyan-400 transition-colors">2. Controls & Swashplate</a>
+        <a href="#theory-torque" class="hover:text-cyan-400 transition-colors">3. Anti-Torque</a>
+        <a href="#theory-aerodynamics" class="hover:text-cyan-400 transition-colors">4. Complex Dynamics</a>
+        <a href="#theory-regimes" class="hover:text-cyan-400 transition-colors">5. Flight Regimes</a>
+        <a href="#simulator" class="px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-400 hover:bg-cyan-500/20 transition-all font-mono text-xs flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          Live Simulator
+        </a>
+      </nav>
+      <a href="#simulator" class="md:hidden text-xs px-3 py-1.5 rounded bg-cyan-500 text-slate-950 font-semibold">
+        Simulator
+      </a>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="relative overflow-hidden pt-16 pb-20 border-b border-slate-800/60">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(6,182,212,0.08),transparent_50%),radial-gradient(circle_at_70%_70%,rgba(59,130,246,0.08),transparent_50%)]"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div class="max-w-3xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs font-mono text-cyan-400 mb-6">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          Interactive Aerodynamic Primer
+        </div>
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
+          How Simple Helicopters <br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">Actually Fly</span>
+        </h1>
+        <p class="mt-6 text-lg text-slate-300 leading-relaxed">
+          Unlike airplanes that must roll down a runway to generate airflow over fixed wings, helicopters carry their own wind. By continuously rotating their thin airfoils, they create lift, maneuver in all dimensions, and balance extreme rotational forces in mid-air.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-4 items-center">
+          <a href="#simulator" class="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-2">
+            <span>Launch Flight Simulator</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </a>
+          <a href="#theory-rotary" class="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-white font-medium transition-all">
+            Begin Theory Course
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-28">
+
+    <!-- SECTION 1: THE ROTARY WING -->
+    <section id="theory-rotary" class="scroll-mt-24">
+      <div class="flex items-center gap-3 text-cyan-400 text-sm font-mono uppercase tracking-wider mb-2">
+        <span class="w-6 h-px bg-cyan-400"></span> Section 01
+      </div>
+      <h2 class="text-3xl font-bold tracking-tight text-white mb-6">The Rotary Wing: Generating Lift from Motion</h2>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div class="lg:col-span-7 space-y-4 text-slate-300 leading-relaxed">
+          <p>
+            An airplane wing requires the entire aircraft to speed forward through the air mass. A helicopter bypasses this limitation by mounting multiple wings (called <strong class="text-white">rotor blades</strong>) on a vertical mast, rotating them through the air even when the fuselage is completely motionless on the ground.
+          </p>
+          <p>
+            Each rotor blade is shaped with an aerodynamic <strong class="text-white">airfoil cross-section</strong>. When the blade slices through the air, it alters airflow velocity:
+          </p>
+          <ul class="list-none space-y-3 my-4">
+            <li class="flex items-start gap-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+              <span class="text-cyan-400 font-bold font-mono">A.</span>
+              <span><strong class="text-white">Bernoulli’s Principle:</strong> Air moves faster over the curved upper surface of the blade than below it, producing lower static pressure on top.</span>
+            </li>
+            <li class="flex items-start gap-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+              <span class="text-cyan-400 font-bold font-mono">B.</span>
+              <span><strong class="text-white">Newton’s Third Law:</strong> The blade's angle of attack deflects massive volumes of air downwards (<em class="text-cyan-300">induced flow or downwash</em>). In response, the air imparts an equal upward reaction force: <strong class="text-white">Lift</strong>.</span>
+            </li>
+          </ul>
+          <p>
+            Crucially, rotor blade velocity is <strong class="text-white">not uniform</strong>. The blade tip travels along a vastly larger circumference than the blade root for every revolution ($V = \omega \cdot r$). Consequently, blade tips encounter very high relative wind speed, necessitating <strong class="text-white">blade twist</strong> (built-in wash-out) to equalize lift distribution across the blade length.
+          </p>
+        </div>
+
+        <!-- Interactive Airfoil Widget -->
+        <div class="lg:col-span-5 bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-xl">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <h3 class="text-sm font-semibold text-white uppercase tracking-wider flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> Airfoil Pitch Angle Inspector
+            </h3>
+            <span id="aoa-val-badge" class="font-mono text-xs px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-semibold">+8.0°</span>
+          </div>
+
+          <!-- SVG Airfoil diagram -->
+          <div class="relative h-52 my-4 flex items-center justify-center bg-slate-950 rounded-xl overflow-hidden border border-slate-800/80">
+            <!-- Streamlines background -->
+            <svg class="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 400 200">
+              <path d="M 10 50 Q 150 20 390 60" stroke="#38bdf8" stroke-width="1.5" fill="none" stroke-dasharray="4 4" />
+              <path d="M 10 100 Q 150 70 390 120" stroke="#38bdf8" stroke-width="1.5" fill="none" stroke-dasharray="4 4" />
+              <path d="M 10 150 Q 150 140 390 160" stroke="#38bdf8" stroke-width="1.5" fill="none" stroke-dasharray="4 4" />
+            </svg>
+
+            <!-- Rotating Airfoil with Force Vectors -->
+            <svg id="airfoil-svg" class="w-64 h-36 overflow-visible transition-transform duration-100" viewBox="0 0 200 100">
+              <!-- Airfoil Body -->
+              <path d="M 30 50 C 45 32, 85 30, 165 49 C 170 50, 170 51, 165 52 C 110 58, 65 58, 30 50 Z" fill="#334155" stroke="#38bdf8" stroke-width="2" />
+              <!-- Chord Line -->
+              <line x1="25" y1="50" x2="175" y2="50" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2" />
+              <!-- Center of Pressure dot -->
+              <circle cx="75" cy="46" r="3.5" fill="#f43f5e" />
+              <!-- Lift vector arrow -->
+              <g id="lift-vector-arrow">
+                <line x1="75" y1="46" x2="75" y2="5" stroke="#10b981" stroke-width="3" stroke-linecap="round" />
+                <polygon points="75,0 70,12 80,12" fill="#10b981" />
+                <text x="82" y="16" fill="#10b981" font-size="10" font-family="JetBrains Mono" font-weight="bold">LIFT</text>
+              </g>
+              <!-- Relative wind incoming arrow -->
+              <g>
+                <line x1="0" y1="50" x2="20" y2="50" stroke="#38bdf8" stroke-width="2" />
+                <polygon points="25,50 15,46 15,54" fill="#38bdf8" />
+                <text x="2" y="42" fill="#38bdf8" font-size="8" font-family="JetBrains Mono">V_rel</text>
+              </g>
+            </svg>
+
+            <!-- Downwash indicator -->
+            <div id="downwash-glow" class="absolute bottom-2 right-4 text-xs font-mono text-cyan-400/80 flex items-center gap-1">
+              <span>Downwash Inflow:</span>
+              <span id="downwash-mag" class="font-bold text-cyan-300">Moderate</span>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex justify-between text-xs text-slate-400 font-mono">
+              <label for="airfoil-pitch-slider">Blade Angle of Attack (&alpha;)</label>
+              <span id="stall-warning" class="text-rose-400 hidden font-bold">AERODYNAMIC STALL!</span>
+            </div>
+            <input id="airfoil-pitch-slider" type="range" min="0" max="20" step="0.5" value="8" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[11px] text-slate-500 font-mono">
+              <span>0° (Flat)</span>
+              <span>8° (Normal Cruise)</span>
+              <span>15° (Stall Limit)</span>
+              <span>20°</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">
+              Drag slider to adjust angle of attack. Notice how lift grows linearly until around 14°–16°, where boundary layer separation occurs and blade stalls.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: THE 3 FLIGHT CONTROLS & THE SWASHPLATE -->
+    <section id="theory-controls" class="scroll-mt-24">
+      <div class="flex items-center gap-3 text-cyan-400 text-sm font-mono uppercase tracking-wider mb-2">
+        <span class="w-6 h-px bg-cyan-400"></span> Section 02
+      </div>
+      <h2 class="text-3xl font-bold tracking-tight text-white mb-6">The Three Primary Flight Controls & The Swashplate</h2>
+
+      <p class="text-slate-300 leading-relaxed max-w-3xl mb-8">
+        A helicopter pilot cannot simply turn a steering wheel. Flight requires coordinating three distinct control inputs, orchestrated mechanically through one of the most ingenious engineering marvels ever created: <strong class="text-white">the Swashplate Assembly</strong>.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <!-- Control 1 -->
+        <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 transition-all flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center font-bold font-mono mb-4">
+              01
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Collective Pitch Lever</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Mounted to the pilot's left side. Pulling up moves the entire swashplate assembly vertically up the mast, increasing the angle of attack of <strong class="text-slate-200">all blades simultaneously by the same amount</strong>. Result: total rotor thrust increases, and the helicopter climbs.
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800 text-xs font-mono text-cyan-400">
+            Axis: Vertical (Climb / Sink)
+          </div>
+        </div>
+
+        <!-- Control 2 -->
+        <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 transition-all flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold font-mono mb-4">
+              02
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Cyclic Stick</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Held in the right hand between the pilot's knees. Tilting this stick <strong class="text-slate-200">tilts the swashplate</strong>. Blade pitch now varies continuously as each blade orbits around the rotor disc—climbing on one side and dipping on the opposite. The rotor disc tilts, directing thrust forward, back, left, or right.
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800 text-xs font-mono text-blue-400">
+            Axis: Pitch & Roll (Translation)
+          </div>
+        </div>
+
+        <!-- Control 3 -->
+        <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 transition-all flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold font-mono mb-4">
+              03
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Anti-Torque Pedals</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Foot pedals operate pitch links on the <strong class="text-slate-200">tail rotor</strong>. Pushing the left or right pedal varies the horizontal thrust at the tail, overcoming main rotor engine torque to point the nose or execute pirouette yaw maneuvers in hover.
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800 text-xs font-mono text-amber-400">
+            Axis: Yaw (Heading Control)
+          </div>
+        </div>
+      </div>
+
+      <!-- Swashplate Mechanics Breakdown -->
+      <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 sm:p-8">
+        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+          The Dual-Ring Swashplate Mechanism Explained
+        </h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          <div class="space-y-3 text-slate-300 text-sm leading-relaxed">
+            <p>
+              How do stationary pilot controls communicate with spinning rotor blades spinning at 400 RPM?
+            </p>
+            <p>
+              The swashplate consists of two concentric rings separated by a giant precision bearing:
+            </p>
+            <ul class="space-y-2 font-mono text-xs text-slate-300">
+              <li class="p-2 rounded bg-slate-800/60 border-l-2 border-cyan-400">
+                <span class="text-cyan-300 font-bold">1. Stationary Ring (Bottom):</span> Connected via mechanical pushrods to the cyclic and collective controls. Does NOT rotate, but can slide vertically and tilt in any direction.
+              </li>
+              <li class="p-2 rounded bg-slate-800/60 border-l-2 border-emerald-400">
+                <span class="text-emerald-300 font-bold">2. Rotating Ring (Top):</span> Locked to the rotor mast via scissors linkages and spins synchronously with the blades. Pitch control rods link this ring directly to each blade horn.
+              </li>
+            </ul>
+            <p>
+              When the pilot tilts the stationary plate, the rotating plate follows its exact orientation. As each blade sweeps across the high side of the tilt, its pitch horn twists the blade to high pitch; when it sweeps to the low side, its pitch drops.
+            </p>
+          </div>
+
+          <!-- Visual schematic diagram -->
+          <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 flex flex-col items-center justify-center">
+            <svg class="w-full max-w-sm h-60" viewBox="0 0 300 240">
+              <!-- Central Mast -->
+              <rect x="142" y="10" width="16" height="210" fill="#475569" rx="2" />
+              <!-- Mast Centerline -->
+              <line x1="150" y1="5" x2="150" y2="230" stroke="#06b6d4" stroke-dasharray="3 3" opacity="0.6"/>
+
+              <!-- Rotor Hub & Blades at Top -->
+              <g id="mast-head">
+                <rect x="130" y="20" width="40" height="15" fill="#1e293b" rx="2" stroke="#64748b" />
+                <path d="M 50 22 L 130 25 L 130 30 L 50 27 Z" fill="#334155" stroke="#38bdf8" />
+                <path d="M 170 25 L 250 22 L 250 27 L 170 30 Z" fill="#334155" stroke="#38bdf8" />
+                <circle cx="90" cy="25" r="3" fill="#f59e0b" />
+                <circle cx="210" cy="25" r="3" fill="#f59e0b" />
+              </g>
+
+              <!-- Rotating Swashplate (Greenish) -->
+              <g id="rotating-swashplate" transform="rotate(-6 150 110)">
+                <ellipse cx="150" cy="105" rx="85" ry="12" fill="#059669" stroke="#34d399" stroke-width="2" />
+                <text x="210" y="100" fill="#34d399" font-size="9" font-family="JetBrains Mono">Rotating Ring</text>
+                <!-- Pitch Links to blades -->
+                <line x1="90" y1="105" x2="90" y2="28" stroke="#34d399" stroke-width="2.5" stroke-dasharray="1 1" />
+                <line x1="210" y1="105" x2="210" y2="28" stroke="#34d399" stroke-width="2.5" stroke-dasharray="1 1" />
+              </g>
+
+              <!-- Stationary Swashplate (Cyan) -->
+              <g id="stationary-swashplate" transform="rotate(-6 150 110)">
+                <ellipse cx="150" cy="116" rx="85" ry="12" fill="#0891b2" stroke="#22d3ee" stroke-width="2" />
+                <text x="25" y="130" fill="#22d3ee" font-size="9" font-family="JetBrains Mono">Stationary Ring</text>
+              </g>
+
+              <!-- Control Pushrods from Cockpit -->
+              <line x1="100" y1="125" x2="100" y2="200" stroke="#06b6d4" stroke-width="3" />
+              <line x1="200" y1="110" x2="200" y2="200" stroke="#06b6d4" stroke-width="3" />
+              <rect x="92" y="195" width="16" height="15" fill="#1e293b" stroke="#06b6d4" rx="2" />
+              <rect x="192" y="195" width="16" height="15" fill="#1e293b" stroke="#06b6d4" rx="2" />
+              <text x="105" y="225" fill="#94a3b8" font-size="9" font-family="JetBrains Mono">From Cyclic / Collective</text>
+            </svg>
+            <p class="text-xs text-slate-500 font-mono text-center">Schematic: Tilt propagates from cockpit servos up to the blade pitch horns</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: NEWTON'S THIRD LAW & ANTI-TORQUE -->
+    <section id="theory-torque" class="scroll-mt-24">
+      <div class="flex items-center gap-3 text-cyan-400 text-sm font-mono uppercase tracking-wider mb-2">
+        <span class="w-6 h-px bg-cyan-400"></span> Section 03
+      </div>
+      <h2 class="text-3xl font-bold tracking-tight text-white mb-6">Newton’s Third Law & The Anti-Torque Problem</h2>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div class="lg:col-span-6 space-y-4 text-slate-300 leading-relaxed">
+          <p>
+            Whenever an internal combustion engine or turboshaft spins the main rotor blades clockwise (viewed from above), <strong class="text-white">Newton's Third Law (Action and Reaction)</strong> applies instantly: the fuselage experiences an equal and opposite torque seeking to spin counter-clockwise.
+          </p>
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 font-mono text-xs text-slate-300">
+            <span class="text-cyan-400 font-bold block mb-1">TORQUE REACTION EQUATION</span>
+            $$Q = \frac{P}{\Omega} \implies F_{\text{tail}} \times d_{\text{tail\_arm}} = Q_{\text{engine}}$$
+            <p class="mt-2 text-slate-400 font-sans">
+              To stop the cabin from spinning out of control, the tail rotor must generate sideways thrust equal to the engine torque divided by the tail boom length.
+            </p>
+          </div>
+          <p>
+            Because main rotor torque increases exponentially whenever the pilot pulls collective to generate more lift, the pilot (or automatic yaw governor) must continuously add anti-torque pedal pressure.
+          </p>
+        </div>
+
+        <div class="lg:col-span-6 bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+          <h3 class="text-sm font-semibold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span> Common Anti-Torque Solutions
+          </h3>
+          <div class="space-y-3">
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80">
+              <div class="font-bold text-white text-sm flex items-center justify-between">
+                <span>1. Conventional Tail Rotor</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">Bell 206, UH-60</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">Open 2 or 4-bladed auxiliary vertical rotor mounted at the tail. Highly efficient, but vulnerable to obstacle strikes.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80">
+              <div class="font-bold text-white text-sm flex items-center justify-between">
+                <span>2. Fenestron (Fan-in-fin)</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono">Airbus H135/H145</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">Shrouded multi-blade ducted fan built into the vertical fin. Safer for ground personnel and quieter, though slightly heavier.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80">
+              <div class="font-bold text-white text-sm flex items-center justify-between">
+                <span>3. NOTAR (No Tail Rotor)</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">MD 520N</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">Uses a low-pressure air blower and the <em class="text-purple-300">Coandă effect</em> along the tail boom plus a directable jet thruster at the end.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80">
+              <div class="font-bold text-white text-sm flex items-center justify-between">
+                <span>4. Coaxial / Tandem Rotors</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">Kamov Ka-52, CH-47 Chinook</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">Two rotors spinning in opposite directions completely cancel each other’s torque. 100% of engine power goes into lift.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: COMPLEX AERODYNAMIC DYNAMICS -->
+    <section id="theory-aerodynamics" class="scroll-mt-24">
+      <div class="flex items-center gap-3 text-cyan-400 text-sm font-mono uppercase tracking-wider mb-2">
+        <span class="w-6 h-px bg-cyan-400"></span> Section 04
+      </div>
+      <h2 class="text-3xl font-bold tracking-tight text-white mb-6">Complex Rotor Dynamics: Flapping & Precession</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Card 1: Dissymmetry of Lift -->
+        <div class="p-6 sm:p-7 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+          <div class="flex items-center gap-2 text-rose-400 font-mono text-xs font-semibold uppercase">
+            <span class="w-2 h-2 rounded-full bg-rose-400"></span> Forward Flight Instability
+          </div>
+          <h3 class="text-xl font-bold text-white">Dissymmetry of Lift</h3>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            In a hover, both blades encounter identical airspeed ($\omega \cdot r$). But as the helicopter flies forward at speed $V_\infty$:
+          </p>
+          <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+            <div class="p-3 rounded-lg bg-slate-950 border border-slate-800">
+              <span class="text-emerald-400 font-bold block mb-1">Advancing Blade:</span>
+              Airspeed = $V_{\text{rot}} + V_{\infty}$<br>
+              <span class="text-slate-400 text-[11px]">Generates huge lift spike!</span>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-950 border border-slate-800">
+              <span class="text-amber-400 font-bold block mb-1">Retreating Blade:</span>
+              Airspeed = $V_{\text{rot}} - V_{\infty}$<br>
+              <span class="text-slate-400 text-[11px]">Suffers lift drop & stall!</span>
+            </div>
+          </div>
+          <p class="text-sm text-slate-400">
+            Without correction, the helicopter would violently roll over toward the retreating blade side. Juan de la Cierva solved this by introducing the <strong class="text-white">Flapping Hinge</strong>. The advancing blade flaps upward (reducing its effective angle of attack), while the retreating blade flaps downward (increasing angle of attack), self-balancing the lift.
+          </p>
+        </div>
+
+        <!-- Card 2: Gyroscopic Precession -->
+        <div class="p-6 sm:p-7 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+          <div class="flex items-center gap-2 text-sky-400 font-mono text-xs font-semibold uppercase">
+            <span class="w-2 h-2 rounded-full bg-sky-400"></span> 90° Phase Delay
+          </div>
+          <h3 class="text-xl font-bold text-white">Gyroscopic Precession</h3>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            A spinning rotor disc behaves precisely like a giant gyroscope. When a force is applied to tilt a spinning gyro, the resultant movement occurs not where the force was exerted, but <strong class="text-cyan-300">90 degrees later in the direction of rotation</strong>.
+          </p>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 space-y-2">
+            <div class="flex items-center justify-between font-mono">
+              <span class="text-cyan-400 font-bold">THE PILOT'S TRICK:</span>
+              <span>Phase Angle = 90°</span>
+            </div>
+            <p class="text-slate-400">
+              To tilt the rotor disc forward, the cyclic pitch must change maximum blade angle over the <em>left or right side</em> of the helicopter, so the peak flapping reaction reaches maximum downward deflection exactly at the nose 90° later. The swashplate pitch links are mechanically offset by 90° to do this automatically!
+            </p>
+          </div>
+          <p class="text-sm text-slate-400">
+            This elegant harmony between fluid dynamics and rigid-body mechanics makes controllable flight possible.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: SPECIAL FLIGHT REGIMES & SAFETY -->
+    <section id="theory-regimes" class="scroll-mt-24">
+      <div class="flex items-center gap-3 text-cyan-400 text-sm font-mono uppercase tracking-wider mb-2">
+        <span class="w-6 h-px bg-cyan-400"></span> Section 05
+      </div>
+      <h2 class="text-3xl font-bold tracking-tight text-white mb-6">Special Flight Regimes: Ground Effect & Autorotation</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold text-sm">
+            IGE
+          </div>
+          <h3 class="text-lg font-bold text-white">Ground Effect (IGE vs OGE)</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            When hovering within one rotor diameter of the terrain, the solid ground physically blocks the downward airflow, causing it to curl outward. This substantially reduces blade tip vortex formation and induced drag, enabling the helicopter to hover with <strong class="text-emerald-300">15% to 25% less engine power</strong> than in Out of Ground Effect (OGE).
+          </p>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+          <div class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center font-bold text-sm">
+            VRS
+          </div>
+          <h3 class="text-lg font-bold text-white">Vortex Ring State</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            If a helicopter descends too quickly at near-zero forward airspeed, it sinks into its own violent downwash. The air recirculates upward through the disc and curls back down in a churning donut vortex. Applying more collective pitch merely accelerates the vortex, increasing the descent rate dangerously ("settling with power").
+          </p>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+          <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center font-bold text-sm">
+            AUTO
+          </div>
+          <h3 class="text-lg font-bold text-white">Autorotation: Engine Off Landing</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            If the engine fails, a helicopter does not fall like a stone. The pilot immediately drops collective pitch to minimum and uncouples the engine via a freewheeling clutch. Upward air through the descending rotor spins the blades like a windmill. Right before touchdown, the pilot raises collective, using the stored rotor momentum to cushion a gentle touchdown.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: INTERACTIVE SIMULATOR & CALCULATOR -->
+    <section id="simulator" class="scroll-mt-24 pt-4 border-t border-slate-800/80">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-4">
+        <div>
+          <div class="flex items-center gap-3 text-cyan-400 text-sm font-mono uppercase tracking-wider mb-1">
+            <span class="w-6 h-px bg-cyan-400"></span> Laboratory Experiment
+          </div>
+          <h2 class="text-3xl font-bold tracking-tight text-white">Interactive Aerodynamic Flight Chamber</h2>
+          <p class="text-slate-400 text-sm mt-1">
+            Tune physical helicopter parameters and watch the aerodynamic forces calculate in real-time.
+          </p>
+        </div>
+
+        <!-- Preset Buttons -->
+        <div class="flex items-center gap-2 flex-wrap text-xs font-mono">
+          <span class="text-slate-500 mr-1">Presets:</span>
+          <button onclick="setPreset('hover')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 transition-colors">
+            Stable Hover
+          </button>
+          <button onclick="setPreset('climb')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-cyan-500/30 transition-colors">
+            Max Climb
+          </button>
+          <button onclick="setPreset('highalt')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-400 border border-amber-500/30 transition-colors">
+            High Altitude
+          </button>
+          <button onclick="setPreset('autorotate')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-rose-400 border border-rose-500/30 transition-colors">
+            Autorotation
+          </button>
+        </div>
+      </div>
+
+      <!-- MAIN SIMULATOR GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- Visual Flight Canvas & Real-time Telemetry (7 cols) -->
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+          <!-- Canvas Top HUD -->
+          <div class="bg-slate-950/80 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between text-xs font-mono">
+            <div class="flex items-center gap-2">
+              <span id="state-indicator-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="flight-state-text" class="font-bold text-emerald-400 uppercase tracking-wide">STATE: STABLE HOVER</span>
+            </div>
+            <div class="flex items-center gap-4 text-slate-400">
+              <span>AIR DENSITY (&rho;): <strong id="rho-display" class="text-cyan-300">1.225 kg/m³</strong></span>
+              <span>TIP MACH: <strong id="tip-mach-display" class="text-slate-200">0.61</strong></span>
+            </div>
+          </div>
+
+          <!-- 2D Canvas Viewport -->
+          <div class="relative w-full h-[360px] sm:h-[400px] bg-slate-950">
+            <canvas id="flightCanvas" class="w-full h-full block"></canvas>
+
+            <!-- Overlay Indicators -->
+            <div class="absolute top-4 left-4 pointer-events-none font-mono text-xs space-y-1 bg-slate-950/70 p-2.5 rounded-lg border border-slate-800 backdrop-blur-sm">
+              <div class="text-slate-400">Altitude: <span id="hud-alt" class="text-white font-bold">12.4 m</span></div>
+              <div class="text-slate-400">V. Speed: <span id="hud-vspeed" class="text-cyan-400 font-bold">+0.0 m/s</span></div>
+              <div class="text-slate-400">Rotor RPM: <span id="hud-rpm" class="text-emerald-400 font-bold">400</span></div>
+              <div class="text-slate-400">Pitch Angle: <span id="hud-pitch" class="text-amber-400 font-bold">10.2°</span></div>
+            </div>
+
+            <!-- Force Vector Legend in Canvas -->
+            <div class="absolute bottom-4 left-4 pointer-events-none font-mono text-[10px] space-y-1 bg-slate-950/70 p-2 rounded-lg border border-slate-800 backdrop-blur-sm">
+              <div class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-emerald-400 inline-block"></span> Total Rotor Thrust (T)</div>
+              <div class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-rose-400 inline-block"></span> Gross Weight (W = mg)</div>
+              <div class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-amber-400 inline-block"></span> Tail Anti-Torque Force</div>
+            </div>
+
+            <!-- Ground effect active pill -->
+            <div id="ige-pill" class="absolute top-4 right-4 hidden pointer-events-none font-mono text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              ⚡ IN GROUND EFFECT (IGE) +22% LIFT
+            </div>
+          </div>
+
+          <!-- Bottom Telemetry Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-slate-800 border-t border-slate-800">
+            <div class="bg-slate-900 p-3 text-center">
+              <span class="block text-[11px] font-mono text-slate-400">TOTAL LIFT (T)</span>
+              <span id="telemetry-lift" class="text-lg font-mono font-bold text-emerald-400">9,810 N</span>
+            </div>
+            <div class="bg-slate-900 p-3 text-center">
+              <span class="block text-[11px] font-mono text-slate-400">TOTAL WEIGHT (W)</span>
+              <span id="telemetry-weight" class="text-lg font-mono font-bold text-rose-400">9,810 N</span>
+            </div>
+            <div class="bg-slate-900 p-3 text-center">
+              <span class="block text-[11px] font-mono text-slate-400">POWER REQ.</span>
+              <span id="telemetry-power" class="text-lg font-mono font-bold text-cyan-400">142 kW</span>
+            </div>
+            <div class="bg-slate-900 p-3 text-center">
+              <span class="block text-[11px] font-mono text-slate-400">MAST TORQUE</span>
+              <span id="telemetry-torque" class="text-lg font-mono font-bold text-amber-400">3,389 N·m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls Dashboard (5 cols) -->
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="font-bold text-white text-base flex items-center gap-2">
+              <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+              Flight Parameters
+            </h3>
+            <button onclick="resetDefaults()" class="text-xs font-mono text-slate-400 hover:text-cyan-400 transition-colors">
+              Reset Values
+            </button>
+          </div>
+
+          <!-- Parameter 1: Collective Pitch -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center text-xs font-mono">
+              <label for="slider-pitch" class="text-slate-300 font-medium">Collective Pitch Angle (&theta;)</label>
+              <span id="val-pitch" class="text-cyan-400 font-bold">10.2°</span>
+            </div>
+            <input id="slider-pitch" type="range" min="0" max="18" step="0.2" value="10.2" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+              <span>0° (Flat)</span>
+              <span>8°-11° (Hover Range)</span>
+              <span>18° (Extreme)</span>
+            </div>
+          </div>
+
+          <!-- Parameter 2: Rotor RPM -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center text-xs font-mono">
+              <label for="slider-rpm" class="text-slate-300 font-medium">Rotor RPM (&Omega;)</label>
+              <span id="val-rpm" class="text-emerald-400 font-bold">400 RPM</span>
+            </div>
+            <input id="slider-rpm" type="range" min="0" max="550" step="5" value="400" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+              <span>0 RPM</span>
+              <span>380-420 (Nominal)</span>
+              <span>550 (Overspeed)</span>
+            </div>
+          </div>
+
+          <!-- Parameter 3: Aircraft Mass -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center text-xs font-mono">
+              <label for="slider-mass" class="text-slate-300 font-medium">Aircraft Gross Mass (m)</label>
+              <span id="val-mass" class="text-rose-400 font-bold">1000 kg</span>
+            </div>
+            <input id="slider-mass" type="range" min="500" max="1800" step="25" value="1000" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+              <span>500 kg (Light ultralight)</span>
+              <span>1000 kg (4-seat)</span>
+              <span>1800 kg (Overloaded)</span>
+            </div>
+          </div>
+
+          <!-- Parameter 4: Rotor Diameter -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center text-xs font-mono">
+              <label for="slider-radius" class="text-slate-300 font-medium">Rotor Diameter (2R)</label>
+              <span id="val-radius" class="text-purple-400 font-bold">10.0 m</span>
+            </div>
+            <input id="slider-radius" type="range" min="6" max="15" step="0.5" value="10" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+              <span>6 m</span>
+              <span>10 m</span>
+              <span>15 m (Heavy Disk)</span>
+            </div>
+          </div>
+
+          <!-- Parameter 5: Density Altitude -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center text-xs font-mono">
+              <label for="slider-alt" class="text-slate-300 font-medium">Density Altitude (MSL)</label>
+              <span id="val-alt" class="text-sky-400 font-bold">0 m (Sea Level)</span>
+            </div>
+            <input id="slider-alt" type="range" min="0" max="4000" step="100" value="0" class="w-full h-2 bg-slate-800 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+              <span>0 m</span>
+              <span>2000 m</span>
+              <span>4000 m (Thin Air)</span>
+            </div>
+          </div>
+
+          <!-- Quick Aerodynamic Explanation Box -->
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-400 leading-relaxed font-mono">
+            <div class="text-cyan-300 font-bold mb-1 flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Aerodynamic Physics Takeaway
+            </div>
+            <p id="physics-note">
+              When Total Rotor Thrust exactly equals Gross Weight, the helicopter achieves hover equilibrium. Notice how higher altitude forces you to increase Collective Pitch to compensate for lower air density ($\rho$).
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 7: CHECK YOUR UNDERSTANDING (INTERACTIVE QUIZ) -->
+    <section class="border-t border-slate-800/80 pt-16">
+      <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-10">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs font-mono text-cyan-400 mb-3">
+            Knowledge Check
+          </div>
+          <h2 class="text-3xl font-bold text-white tracking-tight">Test Your Rotor Aerodynamics Mastery</h2>
+          <p class="text-slate-400 text-sm mt-2">Verify your understanding of rotary wing physics with these concept checks.</p>
+        </div>
+
+        <div class="space-y-6">
+          <!-- Quiz Item 1 -->
+          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+            <div class="text-sm font-semibold text-white">1. Why does pulling up on the collective lever require immediate anti-torque pedal input?</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+              <button onclick="checkAnswer(this, false, 'q1-feedback')" class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition-all">
+                A) The tail rotor turns off when collective is pulled.
+              </button>
+              <button onclick="checkAnswer(this, true, 'q1-feedback')" class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition-all">
+                B) Increased blade pitch creates more profile drag, demanding more engine torque, which induces greater opposite yaw reaction.
+              </button>
+              <button onclick="checkAnswer(this, false, 'q1-feedback')" class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition-all">
+                C) Higher altitude creates gyroscopic drag on the fuel tank.
+              </button>
+              <button onclick="checkAnswer(this, false, 'q1-feedback')" class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition-all">
+                D) Cyclic pitch disconnects automatically.
+              </button>
+            </div>
+            <div id="q1-feedback" class="text-xs font-mono hidden pt-2"></div>
+          </div>
+
+          <!-- Quiz Item 2 -->
+          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+            <div class="text-sm font-semibold text-white">2. Due to gyroscopic precession, if you want the rotor disc to tilt forward, at what point in the rotation cycle must the blade reach its maximum pitch angle?</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+              <button onclick="checkAnswer(this, false, 'q2-feedback')" class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition-all">
+                A) Right at the front nose of the helicopter.
+              </button>
+              <button onclick="checkAnswer(this, false, 'q2-feedback')" class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition-all">
+                B) Directly at the tail 180° away.
+              </button>
+              <button onclick="checkAnswer(this, true, 'q2-feedback')" class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition-all">
+                C) 90° prior in rotation (over the left side for counter-clockwise rotors).
+              </button>
+              <button onclick="checkAnswer(this, false, 'q2-feedback')" class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition-all">
+                D) Precession only applies to fixed-wing aircraft.
+              </button>
+            </div>
+            <div id="q2-feedback" class="text-xs font-mono hidden pt-2"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="mt-24 border-t border-slate-800/80 bg-slate-950 py-12 text-center text-xs text-slate-500 font-mono">
+    <div class="max-w-7xl mx-auto px-4 space-y-3">
+      <div class="flex items-center justify-center gap-2 text-slate-400 font-bold">
+        <span>RotaryAero</span> &bull; <span>Aerodynamic Interactive Education</span>
+      </div>
+      <p>Formulated using standard actuator disc momentum theory and blade element approximations for educational simulation.</p>
+    </div>
+  </footer>
+
+  <!-- SCRIPT: PHYSICS CALCULATOR & CANVAS FLIGHT CHAMBER -->
+  <script>
+    // State management for simulator
+    const sim = {
+      pitch: 10.2,       // collective pitch in degrees
+      rpm: 400,          // main rotor RPM
+      mass: 1000,        // kg
+      radius: 5.0,       // radius in meters (diameter / 2)
+      altMSL: 0,         // density altitude in meters
+      
+      // Dynamic flight simulation state
+      altVisual: 12.0,   // visual height above ground in meters (0 to 45m)
+      vSpeed: 0.0,       // m/s vertical speed
+      rotorAngle: 0.0,   // rotation angle in radians
+      lastTime: performance.now(),
+      
+      // Aerodynamic outputs
+      lift: 0,
+      weight: 0,
+      powerReq: 0,
+      torque: 0,
+      rho: 1.225,
+      inGroundEffect: false,
+      isStalled: false
+    };
+
+    // DOM Elements
+    const canvas = document.getElementById('flightCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const sliderPitch = document.getElementById('slider-pitch');
+    const sliderRpm = document.getElementById('slider-rpm');
+    const sliderMass = document.getElementById('slider-mass');
+    const sliderRadius = document.getElementById('slider-radius');
+    const sliderAlt = document.getElementById('slider-alt');
+
+    const valPitch = document.getElementById('val-pitch');
+    const valRpm = document.getElementById('val-rpm');
+    const valMass = document.getElementById('val-mass');
+    const valRadius = document.getElementById('val-radius');
+    const valAlt = document.getElementById('val-alt');
+
+    const hudAlt = document.getElementById('hud-alt');
+    const hudVspeed = document.getElementById('hud-vspeed');
+    const hudRpm = document.getElementById('hud-rpm');
+    const hudPitch = document.getElementById('hud-pitch');
+
+    const telemetryLift = document.getElementById('telemetry-lift');
+    const telemetryWeight = document.getElementById('telemetry-weight');
+    const telemetryPower = document.getElementById('telemetry-power');
+    const telemetryTorque = document.getElementById('telemetry-torque');
+    const stateText = document.getElementById('flight-state-text');
+    const stateDot = document.getElementById('state-indicator-dot');
+    const igePill = document.getElementById('ige-pill');
+    const rhoDisplay = document.getElementById('rho-display');
+    const tipMachDisplay = document.getElementById('tip-mach-display');
+    const physicsNote = document.getElementById('physics-note');
+
+    // Section 1 interactive airfoil elements
+    const airfoilPitchSlider = document.getElementById('airfoil-pitch-slider');
+    const airfoilSvg = document.getElementById('airfoil-svg');
+    const aoaValBadge = document.getElementById('aoa-val-badge');
+    const stallWarning = document.getElementById('stall-warning');
+    const liftVectorArrow = document.getElementById('lift-vector-arrow');
+    const downwashMag = document.getElementById('downwash-mag');
+
+    // Airfoil Section interaction
+    if (airfoilPitchSlider) {
+      airfoilPitchSlider.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        aoaValBadge.innerText = `+${val.toFixed(1)}°`;
+        // Rotate airfoil
+        airfoilSvg.style.transform = `rotate(${-val * 0.9}deg)`;
+        
+        if (val > 15) {
+          stallWarning.classList.remove('hidden');
+          liftVectorArrow.style.opacity = '0.25';
+          liftVectorArrow.style.transform = 'scaleY(0.3)';
+          downwashMag.innerText = 'Turbulent Stalled Flow';
+          downwashMag.className = 'font-bold text-rose-400';
+        } else {
+          stallWarning.classList.add('hidden');
+          const scale = Math.max(0.1, val / 8);
+          liftVectorArrow.style.opacity = '1';
+          liftVectorArrow.style.transform = `scaleY(${scale})`;
+          if (val < 4) {
+            downwashMag.innerText = 'Weak Inflow';
+            downwashMag.className = 'font-bold text-slate-400';
+          } else if (val < 11) {
+            downwashMag.innerText = 'Moderate Inflow';
+            downwashMag.className = 'font-bold text-cyan-300';
+          } else {
+            downwashMag.innerText = 'High Downwash Velocity';
+            downwashMag.className = 'font-bold text-emerald-400';
+          }
+        }
+      });
+    }
+
+    // Resize canvas cleanly for high-DPI displays
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Physics Engine: Calculate Lift, Power, and Forces
+    function computeAeroPhysics() {
+      // 1. Air density by barometric formula approximation: rho = rho0 * exp(-h/8500)
+      sim.rho = 1.225 * Math.exp(-sim.altMSL / 8500);
+
+      // 2. Angular velocity and Tip speed
+      const omega = (sim.rpm * 2 * Math.PI) / 60; // rad/s
+      const vTip = omega * sim.radius;            // m/s
+      const machTip = vTip / 340.0;
+      tipMachDisplay.innerText = machTip.toFixed(2);
+      rhoDisplay.innerText = `${sim.rho.toFixed(3)} kg/m³`;
+
+      // 3. Blade dimensions
+      const bladeCount = 2;
+      const bladeChord = 0.28; // meters
+      const diskArea = Math.PI * Math.pow(sim.radius, 2);
+      const bladeArea = bladeCount * sim.radius * bladeChord;
+      const solidity = bladeArea / diskArea;
+
+      // 4. Stall condition check
+      sim.isStalled = sim.pitch > 16.5;
+
+      // 5. Blade effective lift coefficient (linear range up to stall)
+      let effectivePitchRad = (sim.pitch * Math.PI) / 180;
+      let cl = 2 * Math.PI * effectivePitchRad;
+      if (sim.isStalled) {
+        cl = cl * 0.4; // severe post-stall drop
+      }
+
+      // Mean equivalent dynamic pressure at 75% blade radius
+      const vMean = 0.75 * vTip;
+      const qMean = 0.5 * sim.rho * Math.pow(vMean, 2);
+
+      // Raw rotor thrust
+      let thrust = cl * qMean * bladeArea * 1.85;
+
+      // 6. Ground Effect Calculation (IGE)
+      // IGE is significant when altitude < rotor diameter
+      const rotorDiameter = sim.radius * 2;
+      const heightRatio = Math.max(0.2, sim.altVisual / rotorDiameter);
+      let igeFactor = 1.0;
+      if (heightRatio < 1.0) {
+        // Cheeseman and Bennett ground effect approximation
+        igeFactor = 1.0 / (1.0 - Math.pow(sim.radius / (4 * Math.max(sim.altVisual, 1.2)), 2) * 0.45);
+        igeFactor = Math.min(igeFactor, 1.28); // Cap realistic cushion
+      }
+
+      sim.inGroundEffect = (heightRatio < 0.9 && sim.altVisual > 0.5);
+      thrust *= igeFactor;
+
+      // Zero RPM means zero thrust
+      if (sim.rpm < 20) thrust = 0;
+
+      sim.lift = thrust;
+      sim.weight = sim.mass * 9.81;
+
+      // 7. Induced velocity from momentum disk theory: v_i = sqrt(T / (2 * rho * A))
+      const inducedVel = Math.sqrt(Math.max(0, thrust) / (2 * sim.rho * diskArea + 1e-4));
+      
+      // 8. Induced & Profile Power
+      const pInduced = thrust * inducedVel;
+      const cd0 = 0.012; // profile drag coefficient
+      const pProfile = 0.125 * sim.rho * cd0 * solidity * diskArea * Math.pow(vTip, 3);
+      sim.powerReq = (pInduced + pProfile) / 1000; // in kW
+
+      // 9. Main rotor shaft torque: Q = Power / omega
+      sim.torque = omega > 1 ? (sim.powerReq * 1000) / omega : 0; // N*m
+    }
+
+    // Update Telemetry Displays
+    function updateTelemetryUI() {
+      telemetryLift.innerText = `${Math.round(sim.lift).toLocaleString()} N`;
+      telemetryWeight.innerText = `${Math.round(sim.weight).toLocaleString()} N`;
+      telemetryPower.innerText = `${Math.round(sim.powerReq).toLocaleString()} kW`;
+      telemetryTorque.innerText = `${Math.round(sim.torque).toLocaleString()} N·m`;
+
+      hudAlt.innerText = `${sim.altVisual.toFixed(1)} m`;
+      hudVspeed.innerText = `${sim.vSpeed >= 0 ? '+' : ''}${sim.vSpeed.toFixed(1)} m/s`;
+      hudRpm.innerText = Math.round(sim.rpm);
+      hudPitch.innerText = `${sim.pitch.toFixed(1)}°`;
+
+      if (sim.inGroundEffect) {
+        igePill.classList.remove('hidden');
+      } else {
+        igePill.classList.add('hidden');
+      }
+
+      // State text and banner
+      const netForce = sim.lift - sim.weight;
+      if (sim.isStalled) {
+        stateText.innerText = 'STATE: ROTOR BLADE STALL!';
+        stateText.className = 'font-bold text-rose-400 uppercase tracking-wide';
+        stateDot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping';
+        physicsNote.innerText = 'Critical Warning: Collective pitch exceeds 16°! Airflow has separated from the blades, causing immediate lift breakdown and uncontrolled descent.';
+      } else if (sim.altVisual <= 0.1 && sim.rpm < 100) {
+        stateText.innerText = 'STATE: GROUND SHUTDOWN';
+        stateText.className = 'font-bold text-slate-400 uppercase tracking-wide';
+        stateDot.className = 'w-2.5 h-2.5 rounded-full bg-slate-500';
+        physicsNote.innerText = 'Helicopter is resting on the skid gear. Advance rotor RPM and raise collective pitch to achieve takeoff.';
+      } else if (Math.abs(netForce) < 180 && Math.abs(sim.vSpeed) < 0.2 && sim.altVisual > 0.5) {
+        stateText.innerText = 'STATE: STABLE HOVER EQUILIBRIUM';
+        stateText.className = 'font-bold text-emerald-400 uppercase tracking-wide';
+        stateDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
+        physicsNote.innerText = 'Equilibrium achieved! Rotor thrust precisely balances Gross Weight (T = mg). Downward momentum imparted to the air column keeps the aircraft suspended.';
+      } else if (netForce > 180) {
+        stateText.innerText = `STATE: POSITIVE CLIMB (+${sim.vSpeed.toFixed(1)} m/s)`;
+        stateText.className = 'font-bold text-cyan-400 uppercase tracking-wide';
+        stateDot.className = 'w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse';
+        physicsNote.innerText = 'Excess thrust (T > W) produces upward vertical acceleration. More downwash is expelled beneath the helicopter.';
+      } else {
+        stateText.innerText = `STATE: CONTROLLED SINK (${sim.vSpeed.toFixed(1)} m/s)`;
+        stateText.className = 'font-bold text-amber-400 uppercase tracking-wide';
+        stateDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400';
+        physicsNote.innerText = 'Thrust is lower than weight (T < W). Potential gravitational energy converts into downward velocity.';
+      }
+    }
+
+    // Animation & Canvas Render Loop
+    function render(currentTime) {
+      const dt = Math.min((currentTime - sim.lastTime) / 1000, 0.05); // cap delta time
+      sim.lastTime = currentTime;
+
+      computeAeroPhysics();
+
+      // Physics integration: vertical velocity & height
+      const netForce = sim.lift - sim.weight;
+      const verticalDrag = 0.5 * sim.rho * Math.pow(sim.vSpeed, 2) * 4.0 * Math.sign(sim.vSpeed);
+      const accel = (netForce - verticalDrag) / sim.mass;
+
+      sim.vSpeed += accel * dt;
+      sim.altVisual += sim.vSpeed * dt;
+
+      // Ground collision
+      if (sim.altVisual < 0.0) {
+        sim.altVisual = 0.0;
+        if (sim.vSpeed < -4.0) {
+          // Hard landing bounce
+          sim.vSpeed = -sim.vSpeed * 0.15;
+        } else {
+          sim.vSpeed = 0;
+        }
+      }
+
+      // Ceiling limit
+      if (sim.altVisual > 42.0) {
+        sim.altVisual = 42.0;
+        if (sim.vSpeed > 0) sim.vSpeed = 0;
+      }
+
+      // Rotor rotation accumulation
+      const radPerSec = (sim.rpm * 2 * Math.PI) / 60;
+      sim.rotorAngle += radPerSec * dt;
+
+      // Draw Viewport
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 1. Sky Gradient & Ground
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+      skyGrad.addColorStop(0, '#040711');
+      skyGrad.addColorStop(0.75, '#0d1527');
+      skyGrad.addColorStop(1, '#111827');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Visual ground plane (at bottom)
+      const groundY = h - 40;
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, groundY, w, 40);
+
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, groundY);
+      ctx.lineTo(w, groundY);
+      ctx.stroke();
+
+      // Runway markings
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([12, 12]);
+      ctx.beginPath();
+      ctx.moveTo(w * 0.1, groundY + 18);
+      ctx.lineTo(w * 0.9, groundY + 18);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 2. Altitude Reference Scale (Right margin)
+      ctx.fillStyle = '#475569';
+      ctx.font = '9px "JetBrains Mono"';
+      ctx.textAlign = 'right';
+      for (let markAlt = 0; markAlt <= 40; markAlt += 10) {
+        const markY = groundY - (markAlt / 40) * (groundY - 60);
+        ctx.fillText(`${markAlt}m`, w - 12, markY + 3);
+        ctx.fillRect(w - 8, markY, 6, 1);
+      }
+
+      // 3. Helicopter Position Coordinates
+      // Map sim.altVisual (0m to 40m) to Canvas Y
+      const maxH = groundY - 60;
+      const heliY = groundY - (sim.altVisual / 40.0) * maxH - 25; // center of fuselage
+      const heliX = w * 0.48;
+
+      // 4. Downwash Inflow Streamlines (Air particles moving down)
+      if (sim.rpm > 50 && sim.lift > 200) {
+        const flowStrength = Math.min(1.0, sim.lift / sim.weight);
+        ctx.save();
+        ctx.strokeStyle = `rgba(6, 182, 212, ${0.15 * flowStrength})`;
+        ctx.lineWidth = 1.5;
+        const bladeWidthVisual = sim.radius * 18;
+
+        for (let i = -3; i <= 3; i++) {
+          const streamX = heliX + (i * bladeWidthVisual) / 3.8;
+          ctx.beginPath();
+          ctx.moveTo(streamX, heliY - 10);
+          
+          // Deflection outward near ground
+          const distToGround = groundY - heliY;
+          if (distToGround < 120) {
+            const spread = (120 - distToGround) * (i >= 0 ? 0.6 : -0.6);
+            ctx.quadraticCurveTo(streamX, groundY - 5, streamX + spread, groundY);
+          } else {
+            ctx.lineTo(streamX, heliY + 120);
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // 5. Draw Helicopter Body & Components
+      ctx.save();
+      ctx.translate(heliX, heliY);
+
+      // Subtle hover oscillation
+      const hoverWobble = sim.altVisual > 0.5 ? Math.sin(currentTime * 0.003) * 1.5 : 0;
+      ctx.translate(0, hoverWobble);
+
+      // A. Skid Gear
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      // Skid bar
+      ctx.moveTo(-28, 25);
+      ctx.lineTo(28, 25);
+      // Struts
+      ctx.moveTo(-15, 25);
+      ctx.lineTo(-10, 15);
+      ctx.moveTo(15, 25);
+      ctx.lineTo(10, 15);
+      ctx.stroke();
+
+      // B. Tail Boom & Vertical Fin
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(0, 5);
+      ctx.lineTo(-75, 2);
+      ctx.stroke();
+
+      // Vertical Tail Fin
+      ctx.fillStyle = '#0369a1';
+      ctx.beginPath();
+      ctx.moveTo(-75, 2);
+      ctx.lineTo(-85, -16);
+      ctx.lineTo(-76, -16);
+      ctx.lineTo(-68, 6);
+      ctx.closePath();
+      ctx.fill();
+
+      // Tail Rotor (Spinning)
+      const tailAngle = sim.rotorAngle * 2.8;
+      const tailR = 11;
+      ctx.strokeStyle = sim.rpm > 80 ? 'rgba(56, 189, 248, 0.4)' : '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-80 + Math.cos(tailAngle) * tailR, -7 + Math.sin(tailAngle) * tailR);
+      ctx.lineTo(-80 - Math.cos(tailAngle) * tailR, -7 - Math.sin(tailAngle) * tailR);
+      ctx.stroke();
+
+      // C. Cabin Body
+      ctx.fillStyle = '#0ea5e9';
+      ctx.beginPath();
+      ctx.ellipse(0, 6, 26, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Cabin Glass Canopy
+      ctx.fillStyle = '#082f49';
+      ctx.beginPath();
+      ctx.ellipse(10, 3, 14, 9, 0.2, -Math.PI / 2, Math.PI / 2);
+      ctx.fill();
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // D. Main Rotor Mast
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -9);
+      ctx.lineTo(0, -22);
+      ctx.stroke();
+
+      // Rotor Hub
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(-4, -24, 8, 4);
+
+      // E. Spinning Main Rotor Blades
+      const bladeVisualRadius = sim.radius * 16; // visual pixel radius
+      const discProjection = Math.cos(sim.rotorAngle);
+
+      if (sim.rpm > 80) {
+        // Rotor disc blur disk
+        const blurGrad = ctx.createRadialGradient(0, -24, 5, 0, -24, bladeVisualRadius);
+        blurGrad.addColorStop(0, 'rgba(6, 182, 212, 0.5)');
+        blurGrad.addColorStop(0.8, 'rgba(6, 182, 212, 0.15)');
+        blurGrad.addColorStop(1, 'transparent');
+        ctx.fillStyle = blurGrad;
+        ctx.beginPath();
+        ctx.ellipse(0, -24, bladeVisualRadius, 4.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Blade solid sweep
+      ctx.strokeStyle = '#f8fafc';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(-bladeVisualRadius * discProjection, -24);
+      ctx.lineTo(bladeVisualRadius * discProjection, -24);
+      ctx.stroke();
+
+      // Blade Tip Dots
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(bladeVisualRadius * discProjection, -24, 2, 0, Math.PI * 2);
+      ctx.arc(-bladeVisualRadius * discProjection, -24, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 6. Draw Real-Time Aerodynamic Force Vectors
+      // A. Lift Vector (Green upward arrow)
+      const liftPixels = Math.min(100, (sim.lift / 1000) * 6);
+      if (liftPixels > 2) {
+        ctx.strokeStyle = '#10b981';
+        ctx.fillStyle = '#10b981';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, -26);
+        ctx.lineTo(0, -26 - liftPixels);
+        ctx.stroke();
+        // Arrow head
+        ctx.beginPath();
+        ctx.moveTo(0, -30 - liftPixels);
+        ctx.lineTo(-5, -24 - liftPixels);
+        ctx.lineTo(5, -24 - liftPixels);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.font = 'bold 9px "JetBrains Mono"';
+        ctx.fillText(`T = ${Math.round(sim.lift)} N`, 10, -28 - liftPixels / 2);
+      }
+
+      // B. Weight Vector (Red downward arrow)
+      const weightPixels = Math.min(100, (sim.weight / 1000) * 6);
+      ctx.strokeStyle = '#f43f5e';
+      ctx.fillStyle = '#f43f5e';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, 15);
+      ctx.lineTo(0, 15 + weightPixels);
+      ctx.stroke();
+      // Arrow head
+      ctx.beginPath();
+      ctx.moveTo(0, 20 + weightPixels);
+      ctx.lineTo(-5, 14 + weightPixels);
+      ctx.lineTo(5, 14 + weightPixels);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.font = 'bold 9px "JetBrains Mono"';
+      ctx.fillText(`W = ${Math.round(sim.weight)} N`, 10, 20 + weightPixels / 2);
+
+      // C. Anti-Torque Tail Force (Amber horizontal arrow at tail)
+      if (sim.torque > 100) {
+        const torquePixels = Math.min(30, sim.torque * 0.007);
+        ctx.strokeStyle = '#f59e0b';
+        ctx.fillStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-80, -7);
+        ctx.lineTo(-80 - torquePixels, -7);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-83 - torquePixels, -7);
+        ctx.lineTo(-79 - torquePixels, -10);
+        ctx.lineTo(-79 - torquePixels, -4);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.restore();
+
+      updateTelemetryUI();
+      requestAnimationFrame(render);
+    }
+
+    // Interactive Slider Event Handlers
+    sliderPitch.addEventListener('input', (e) => {
+      sim.pitch = parseFloat(e.target.value);
+      valPitch.innerText = `${sim.pitch.toFixed(1)}°`;
+    });
+
+    sliderRpm.addEventListener('input', (e) => {
+      sim.rpm = parseFloat(e.target.value);
+      valRpm.innerText = `${Math.round(sim.rpm)} RPM`;
+    });
+
+    sliderMass.addEventListener('input', (e) => {
+      sim.mass = parseFloat(e.target.value);
+      valMass.innerText = `${Math.round(sim.mass)} kg`;
+    });
+
+    sliderRadius.addEventListener('input', (e) => {
+      const diameter = parseFloat(e.target.value);
+      sim.radius = diameter / 2;
+      valRadius.innerText = `${diameter.toFixed(1)} m`;
+    });
+
+    sliderAlt.addEventListener('input', (e) => {
+      sim.altMSL = parseFloat(e.target.value);
+      valAlt.innerText = `${Math.round(sim.altMSL)} m`;
+    });
+
+    // Preset Configurations
+    function setPreset(name) {
+      if (name === 'hover') {
+        sim.pitch = 10.2;
+        sim.rpm = 400;
+        sim.mass = 1000;
+        sim.altMSL = 0;
+        sim.altVisual = 12.0;
+        sim.vSpeed = 0.0;
+      } else if (name === 'climb') {
+        sim.pitch = 13.5;
+        sim.rpm = 430;
+        sim.mass = 950;
+        sim.altMSL = 0;
+      } else if (name === 'highalt') {
+        sim.pitch = 12.0;
+        sim.rpm = 410;
+        sim.mass = 1100;
+        sim.altMSL = 3500; // high density altitude thin air
+      } else if (name === 'autorotate') {
+        sim.pitch = 1.5;  // flat blades
+        sim.rpm = 440;    // windmill rotor speed
+        sim.mass = 1000;
+        sim.altMSL = 0;
+        sim.altVisual = 35.0;
+        sim.vSpeed = -8.0;
+      }
+      syncInputs();
+    }
+
+    function resetDefaults() {
+      setPreset('hover');
+    }
+
+    function syncInputs() {
+      sliderPitch.value = sim.pitch;
+      sliderRpm.value = sim.rpm;
+      sliderMass.value = sim.mass;
+      sliderRadius.value = sim.radius * 2;
+      sliderAlt.value = sim.altMSL;
+
+      valPitch.innerText = `${sim.pitch.toFixed(1)}°`;
+      valRpm.innerText = `${Math.round(sim.rpm)} RPM`;
+      valMass.innerText = `${Math.round(sim.mass)} kg`;
+      valRadius.innerText = `${(sim.radius * 2).toFixed(1)} m`;
+      valAlt.innerText = `${Math.round(sim.altMSL)} m`;
+    }
+
+    // Quiz evaluation function
+    function checkAnswer(button, isCorrect, feedbackId) {
+      const feedback = document.getElementById(feedbackId);
+      feedback.classList.remove('hidden');
+
+      // Highlight options
+      const parent = button.parentElement;
+      const allButtons = parent.querySelectorAll('button');
+      allButtons.forEach(b => {
+        b.classList.remove('border-emerald-500', 'bg-emerald-950/40', 'border-rose-500', 'bg-rose-950/40');
+      });
+
+      if (isCorrect) {
+        button.classList.add('border-emerald-500', 'bg-emerald-950/40', 'text-emerald-300');
+        feedback.className = 'text-xs font-mono text-emerald-400 pt-2';
+        feedback.innerText = '✓ Correct! Higher blade angle of attack generates both higher lift and higher aerodynamic drag, demanding greater torque from the engine, which violently reacts on the cabin.';
+      } else {
+        button.classList.add('border-rose-500', 'bg-rose-950/40', 'text-rose-300');
+        feedback.className = 'text-xs font-mono text-rose-400 pt-2';
+        feedback.innerText = '✗ Incorrect. Review the torque reaction principle: Newton\'s third law dictates that changing rotor pitch directly alters blade drag and mast counter-torque!';
+      }
+    }
+
+    // Start Simulation Loop on Load
+    window.addEventListener('load', () => {
+      syncInputs();
+      requestAnimationFrame(render);
+    });
+  </script>
+</body>
+</html>
